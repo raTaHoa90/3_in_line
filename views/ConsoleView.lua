@@ -16,8 +16,7 @@ local MAP_ITEM_TO_STR = {
 }
 
 function ConsoleView:construct(width, height)
-    print("run construct");
-	self.map = {}
+    self.map = {}
     self.width  = width
     self.height = height
     for y = 1, height do

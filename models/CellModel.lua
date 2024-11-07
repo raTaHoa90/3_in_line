@@ -31,7 +31,7 @@ end
 
 function CellModel:dump(renderer)
     if type(renderer.write) == "function" then
-        renderer.write(self.position.x, self.position.y, self.letter);
+        renderer:write(self.position.x, self.position.y, self.letter);
     end
 end
 

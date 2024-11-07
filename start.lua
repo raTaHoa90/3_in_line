@@ -2,14 +2,15 @@
 
 require "utils/strings"
 local Class     = require "utils/classes"
-local Vector2   = require "models/Vector2"
-local CellModel = require "models/CellModel"
+local MapModel = require "models/MapModel"
 
 local ConsoleView = require "views/ConsoleView"
 
 local view = ConsoleView:new(10, 10);
-
+local map = MapModel:new(view);
+map:init();
+map:dump();
 view:dump();
 local s = io.read();
 
-print("test "..#s:split(), view:InstanceOf(ConsoleView), view:InstanceOf(Vector2));
+
