@@ -1,11 +1,13 @@
-local Class   = require "utils/classes"
-require "utils/strings"
+local Class   = require "utils.classes"
+require "utils.strings"
 
 local ConsoleView = Class:Extend();
 
 local MAP_ITEM_TO_STR = {
-    [-2] = "#",
-    [-1] = "+",
+    [-4] = "#",
+    [-3] = "*",
+    [-2] = "+",
+    [-1] = "-",
     [0] = " ",
     [1] = "A",
     [2] = "B",
@@ -17,8 +19,10 @@ local MAP_ITEM_TO_STR = {
 
 function ConsoleView:construct(width, height)
     self.map = {}
-    self.width  = width
-    self.height = height
+    self.width  = width;
+    self.height = height;
+    self.score = 0;
+    self.maxScore = 50;
     for y = 1, height do
         self.map[y] = {};
         for x = 1, width do
@@ -27,23 +31,30 @@ function ConsoleView:construct(width, height)
     end
 end
 
+function ConsoleView:setScore(score)
+    self.score = score;
+    if score > self.maxScore then
+        self.maxScore = score;
+    end
+end
+
 function ConsoleView:write(x, y, letter)
     self.map[y][x] = letter;
 end
 
 
-function ConsoleView:dump()
+function ConsoleView:Draw()
     os.execute("cls");
 
     local line = "   ";
     for i = 0, self.width - 1 do
-        line = line .. i ;
+        line = line .. i .. " " ;
     end
     print(line);
 
     line = "   ";
     for i = 0, self.width - 1 do
-        line = line .. "_" ;
+        line = line .. "_ " ;
     end
     print(line);
     
@@ -55,16 +66,17 @@ function ConsoleView:dump()
         end
 
         for x = 1, self.width do
-            line = line..MAP_ITEM_TO_STR[self.map[y][x]]
+            line = line..MAP_ITEM_TO_STR[self.map[y][x]].." "
         end
         print(line);
+        print()
     end
 
     print();
+    print("Score: "..self.score.." / "..self.maxScore);
     print("HELP:")
     print("    m <x> <y> <arrow(r|l|u|d)> = move");
-    print("    c = exit")
-    print("    q = exit")
+    print("    c or q = exit")
     print("____________")
     io.write("> ");
 end

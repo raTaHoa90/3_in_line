@@ -1,8 +1,9 @@
-local Class = require "utils/classes"
+local Class = require "utils.classes"
 local CellModel = Class:Extend();
+local ANIMATED_START = -4
 
-function CellModel:construct(nextFlow, position)
-    self.nextFlow = nextFlow;
+function CellModel:construct(nextCellFlow, position)
+    self.nextFlow = nextCellFlow;
     self.letter = 0;
     self.animCollapse = false;
     self.position = position
@@ -17,7 +18,7 @@ function CellModel:flow()
         return true;
     end
 
-    if self.nextFlow:flow() then
+    if self.nextFlow and self.nextFlow.letter == 0 then
         self.nextFlow.letter = self.letter;
         self.letter = 0
         return true;
@@ -42,12 +43,16 @@ end
 function CellModel:tick()
     if self.animCollapse then
         if self.letter > 0 then
-            self.letter = -2
+            self.letter = ANIMATED_START
         else
             self.letter = self.letter + 1
+            if self.letter == 0 then
+                self.animCollapse = false;
+            end
         end
     else
         self.animCollapse = false;
+        self:flow()
     end
 end
 
