@@ -1,16 +1,13 @@
-require "utils/strings"
+local Class = require "utils/classes"
+local MapModel = Class:Extend();
 
-local MapModel = {}
-function CellModel:new(view)
-	local o = setmetatable({__instanceof=self}, self)
-	self.__index = self
-	
-
-	return o
+function MapModel:construct(view)
+	self.renderer = view;
 end
 
 function MapModel:init()
-
+	self.width = self.renderer.width;
+	self.height = self.renderer.height;
 end
 
 function MapModel:tick()
