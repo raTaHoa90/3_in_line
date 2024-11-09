@@ -1,21 +1,9 @@
 local Class   = require "utils.classes"
 require "utils.strings"
+local AnimationSystem = require "systems.AnimationSystem"
+local ItemSystem      = require "systems.ItemSystem"
 
 local ConsoleView = Class:Extend();
-
-local MAP_ITEM_TO_STR = {
-    [-4] = "#",
-    [-3] = "*",
-    [-2] = "+",
-    [-1] = "-",
-    [0] = " ",
-    [1] = "A",
-    [2] = "B",
-    [3] = "C",
-    [4] = "D",
-    [5] = "E",
-    [6] = "F"
-}
 
 function ConsoleView:construct(width, height)
     self.map = {}
@@ -23,6 +11,7 @@ function ConsoleView:construct(width, height)
     self.height = height;
     self.score = 0;
     self.maxScore = 50;
+    self.isDraw = false
     for y = 1, height do
         self.map[y] = {};
         for x = 1, width do
@@ -42,8 +31,18 @@ function ConsoleView:write(x, y, letter)
     self.map[y][x] = letter;
 end
 
+function ConsoleView:getLetterDraw(x, y)
+    local item = ItemSystem:FindByValue(self.map[y][x])
+    local letter = " ";
+    if item then
+        letter = ItemSystem:Get(item):toDump(self.map[y][x])
+    end
+    return letter
+end
+
 
 function ConsoleView:Draw()
+    self.isDraw = true;
     os.execute("cls");
 
     local line = "   ";
@@ -66,7 +65,7 @@ function ConsoleView:Draw()
         end
 
         for x = 1, self.width do
-            line = line..MAP_ITEM_TO_STR[self.map[y][x]].." "
+            line = line..self:getLetterDraw(x, y).." "
         end
         print(line);
         print()
@@ -75,10 +74,12 @@ function ConsoleView:Draw()
     print();
     print("Score: "..self.score.." / "..self.maxScore);
     print("HELP:")
-    print("    m <x> <y> <arrow(r|l|u|d)> = move");
-    print("    c or q = exit")
-    print("____________")
+    print("    m <x> <y> <arrow(l|r|u|d)> = move");
+    print("    c or q = quit")
+    print("_________________")
     io.write("> ");
+
+    self.isDraw = false;
 end
 
 

@@ -1,11 +1,8 @@
 local LevelBaseModel = require "models.LevelBaseModel"
 local LevelRectangleModel = LevelBaseModel:Extend();
 
-local MAX_TYPE_ELEMENT = 6
-
 function LevelRectangleModel:construct(width, height)
-    self.parent = getmetatable(getmetatable(self).__index).__index;
-    self.parent.construct(self)
+    self:Parent().construct(self)
 
     self.width = width
     self.height = height
@@ -39,8 +36,8 @@ end
 
 function LevelRectangleModel:FillEmptyCell()
     for _, cell in ipairs(self.horizontalLines[1].line) do
-        if cell.letter == 0 then 
-            cell:init(MAX_TYPE_ELEMENT)
+        if cell:hasEmpty() then 
+            cell:init()
         end
     end
 end

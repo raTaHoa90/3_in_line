@@ -1,35 +1,40 @@
 --os.execute("cls")
 
-function sleep (a) 
-    local sec = tonumber(os.clock() + a); 
-    while (os.clock() < sec) do 
-    end 
-end
-
-function in_array (val, tab)
-    for index, value in ipairs(tab) do
-        if value == val then
-            return true
-        end
-    end
-
-    return false
-end
-
-function isDiap(num, max)
-    return num and num >= 0 and num <= max;
-end
-
+require "utils.func"
 require "utils.strings"
 local Class    = require "utils.classes"
 local MapModel = require "models.MapModel"
 local Vector2 =  require "models.Vector2"
+local CellModel = require "models.CellModel"
 
+local AnimationSystem     = require "systems.AnimationSystem"
+local ItemSystem          = require "systems.ItemSystem"
 local LevelRectangleModel = require "models.LevelRectangleModel"
-local ConsoleView = require "views.ConsoleView"
+local ConsoleView         = require "views.ConsoleView"
 
-local WIDTH = 10
-local HEIGHT = 10
+local ItemAModel = require "models.Items.ItemAModel"
+local ItemBModel = require "models.Items.ItemBModel"
+local ItemCModel = require "models.Items.ItemCModel"
+local ItemDModel = require "models.Items.ItemDModel"
+local ItemEModel = require "models.Items.ItemEModel"
+local ItemFModel = require "models.Items.ItemFModel"
+
+local animationCut = AnimationSystem:Add({
+    [-4] = "#",
+    [-3] = "*",
+    [-2] = "+",
+    [-1] = "-"
+}, {-4,-3,-2,-1})
+
+ItemSystem:Add(ItemAModel:new(animationCut))
+ItemSystem:Add(ItemBModel:new(animationCut))
+ItemSystem:Add(ItemCModel:new(animationCut))
+ItemSystem:Add(ItemDModel:new(animationCut))
+ItemSystem:Add(ItemEModel:new(animationCut))
+ItemSystem:Add(ItemFModel:new(animationCut))
+
+WIDTH = 10
+HEIGHT = 10
 
 local view = ConsoleView:new(WIDTH, HEIGHT);
 local levelSquare = LevelRectangleModel:new(WIDTH, HEIGHT)
@@ -38,6 +43,32 @@ local params = {" "}
 local ARROW_ACCESS = {"l","r","u","d"};
 
 local isMoved = false
+
+if false then -- DEBUG CELL ANIMATION CODE
+
+    local test = CellModel:new(nil, Vector2:new(1,1))
+    local TestRender = ConsoleView:Extend()
+    function TestRender:write(x, y, progress)
+        local item = ItemSystem:FindByValue(progress)
+        local letter = " ";
+        if item then
+            letter = ItemSystem:Get(item):toDump(progress)
+        end
+        print('test: ', letter)
+    end
+    local testDraw = TestRender:new(1,1)
+    test:init()
+    test:StartAimationCollapse()
+    test:dump(testDraw);
+    repeat
+        test:tick();
+
+        test:dump(testDraw);
+        sleep(1)
+
+    until not test:hasAnimationRun()
+end
+
 
 math.randomseed(os.time())
 map:init();
@@ -58,7 +89,7 @@ repeat
             local x = tonumber(params[2]);
             local y = tonumber(params[3]);
             local arrow = params[4]
-            if isDiap(x, WIDTH - 1) and isDiap(y, HEIGHT - 1) and in_array(arrow, ARROW_ACCESS)  then
+            if isRange(x, WIDTH - 1) and isRange(y, HEIGHT - 1) and in_array(arrow, ARROW_ACCESS)  then
                 map:move(Vector2:new(x + 1, y + 1), arrow)
                 isMoved = not isMoved
             else

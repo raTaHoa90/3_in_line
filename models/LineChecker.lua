@@ -29,7 +29,7 @@ function LineChecker:Test()
     self.lastResult = false;
 
     for pos = 1, #self.line do
-        if self.line[pos].letter == letterLast and letterLast > 0 then
+        if self.line[pos].letter == letterLast and letterLast > 0 and not self.line[pos]:hasAnimationRun() then
             countRepeat = countRepeat + 1;
             if countRepeat > 2 then 
                 self.checked[pos] = true;
