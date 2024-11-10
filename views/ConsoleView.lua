@@ -1,39 +1,43 @@
-local Class   = require "utils.classes"
 require "utils.strings"
-local AnimationSystem = require "systems.AnimationSystem"
-local ItemSystem      = require "systems.ItemSystem"
+local Class      = require "utils.classes"
+local ItemSystem = require "systems.ItemSystem"
 
-local ConsoleView = Class:Extend();
+local ConsoleView = Class:Extend()
 
 function ConsoleView:construct(width, height)
     self.map = {}
-    self.width  = width;
-    self.height = height;
-    self.score = 0;
-    self.maxScore = 50;
+    self.width  = width
+    self.height = height
+    self.score = 0
+    self.steps = 0
+    self.maxScore = 50 -- имитация прошлого результата
     self.isDraw = false
     for y = 1, height do
-        self.map[y] = {};
+        self.map[y] = {}
         for x = 1, width do
-            self.map[y][x] = 0;
+            self.map[y][x] = 0
         end
     end
 end
 
 function ConsoleView:setScore(score)
-    self.score = score;
+    self.score = score
     if score > self.maxScore then
-        self.maxScore = score;
+        self.maxScore = score
     end
 end
 
+function ConsoleView:setSteps(stepsCount)
+    self.steps = stepsCount
+end
+
 function ConsoleView:write(x, y, letter)
-    self.map[y][x] = letter;
+    self.map[y][x] = letter
 end
 
 function ConsoleView:getLetterDraw(x, y)
     local item = ItemSystem:FindByValue(self.map[y][x])
-    local letter = " ";
+    local letter = " "
     if item then
         letter = ItemSystem:Get(item):toDump(self.map[y][x])
     end
@@ -42,45 +46,45 @@ end
 
 
 function ConsoleView:Draw()
-    self.isDraw = true;
-    os.execute("cls");
+    self.isDraw = true
+    os.execute("cls")
 
-    local line = "   ";
+    local line = "   "
     for i = 0, self.width - 1 do
-        line = line .. i .. " " ;
+        line = line .. i .. " " 
     end
-    print(line);
+    print(line)
 
-    line = "   ";
+    line = "   "
     for i = 0, self.width - 1 do
-        line = line .. "_ " ;
+        line = line .. "_ " 
     end
-    print(line);
+    print(line)
     
     for y = 1, self.height do
         if y < 11 then 
-            line = " "..(y - 1)..'|';
+            line = " "..(y - 1)..'|'
         else
-            line = (y - 1).."|";
+            line = (y - 1).."|"
         end
 
         for x = 1, self.width do
             line = line..self:getLetterDraw(x, y).." "
         end
-        print(line);
+        print(line)
         print()
     end
 
-    print();
-    print("Score: "..self.score.." / "..self.maxScore);
+    print("Count variants step: "..self.steps)
+    print("Score: "..self.score.." / "..self.maxScore)
     print("HELP:")
-    print("    m <x> <y> <arrow(l|r|u|d)> = move");
+    print("    m <x> <y> <arrow(l|r|u|d)> = move")
     print("    c or q = quit")
     print("_________________")
-    io.write("> ");
+    io.write("> ")
 
-    self.isDraw = false;
+    self.isDraw = false
 end
 
 
-return ConsoleView;
+return ConsoleView

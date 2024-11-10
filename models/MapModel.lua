@@ -1,17 +1,17 @@
 local Class      = require "utils.classes"
-local CellModel  = require "models.CellModel"
 local Vector2    = require "models.Vector2"
 local ItemSystem = require "systems.ItemSystem"
 
-local MapModel = Class:Extend();
+local MapModel = Class:Extend()
 
 function MapModel:construct(view, levelModel)
-	self.renderer = view;
-	self.level = levelModel;
-	self.isMoved = false;
-	self.isAnimate = false;
-	self.isEmptyCell = false;
-	self.score = 0;
+	self.renderer    = view
+	self.level       = levelModel
+	self.isMoved     = false
+	self.isAnimate   = false
+	self.isEmptyCell = false
+	self.score       = 0
+	self.steps       = 0
 end
 
 function MapModel:isNotLoop()
@@ -37,62 +37,102 @@ function MapModel:onNearCut(x,y)
 	end
 end
 
+function MapModel:tickCell(cell)
+	if cell:hasAnimationStart() then
+		self:onNearCut(cell.position.x, cell.position.y)
+	end
+
+	cell:tick()
+	if cell:hasAnimationRun() then 
+		self.isAnimate = true;
+	elseif cell:hasEmpty() then
+		self.isEmptyCell = true
+	end 
+end
+
+function MapModel:cellXCHG(x1,y1, x2,y2)
+	local cell1 = self.map[y1][x1]
+	local cell2 = self.map[y2][x2]
+	cell1.letter, cell2.letter = cell2.letter, cell1.letter
+end
+
+function MapModel:countStepsByXY(x, y, letter)
+	local result = 0
+
+	if  x > 1 then
+		self:cellXCHG(x,y, x-1,y)
+		if self.level:hasStepToLine(x - 1, y, letter) then result = result + 1 end
+		self:cellXCHG(x,y, x-1,y)
+	end
+
+	if  y > 1 then
+		self:cellXCHG(x,y, x,y-1)
+		if self.level:hasStepToLine(x, y - 1, letter) then result = result + 1 end
+		self:cellXCHG(x,y, x,y-1)
+	end
+
+	if  x < self.width then
+		self:cellXCHG(x,y, x+1,y)
+		if self.level:hasStepToLine(x + 1, y, letter)  then result = result + 1 end
+		self:cellXCHG(x,y, x+1,y)
+	end
+
+	if y < self.height then 
+		self:cellXCHG(x,y, x,y+1)
+		if self.level:hasStepToLine(x, y + 1, letter) then result = result + 1 end
+		self:cellXCHG(x,y, x,y+1)
+	end
+
+	return result
+end
+
+function MapModel:countSteps()
+	local result = 0
+	for y = 1, self.height do
+		for x = 1, self.width do
+			result = result + self:countStepsByXY(x, y, self.map[y][x].letter)
+		end
+	end
+	return result
+end
+
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
 
 function MapModel:init()
-	self.width = self.renderer.width;
-	self.height = self.renderer.height;
+	self.width = self.renderer.width
+	self.height = self.renderer.height
 
 	self.map = {}
-    for y = self.height, 1, -1 do
-        self.map[y] = {};
-        for x = 1, self.width do
-			local nextFlow
-			if y < self.height then
-				nextFlow = self.map[y+1][x]
-			else
-				nextFlow = nil
-			end
-
-            self.map[y][x] = CellModel:new(nextFlow, Vector2:new(x, y));
-			self.map[y][x]:init()
-			self.level:AddCell(self.map[y][x])
-        end
-    end
+	self.level:LevelInit(self)
 end
 
 function MapModel:tick()
-	self.isAnimate = false;
-	self.isEmptyCell = false;
+	self.isAnimate = false
+	self.isEmptyCell = false
 	for y = self.height, 1, -1 do
         for x = 1, self.width do
-			if self.map[y][x]:hasAnimationStart() then
-				self:onNearCut(x, y)
-			end
-
-			self.map[y][x]:tick()
-			if self.map[y][x]:hasAnimationRun() then 
-				self.isAnimate = true;
-			elseif self.map[y][x]:hasEmpty() then
-				self.isEmptyCell = true
-			end 
+			self:tickCell(self.map[y][x])
 		end
 	end
 	
-	if not self.isEmptyCell then 
-		self.isMoved = self.level:ReduceLines(function(lastResult, line)
-			return line:Test() or lastResult
-		end, false)
-
-		local score = self.level:ReduceLines(function(lastScore, line)
-			return lastScore + line:CutChecked()
-		end, 0)
-		if score > 0 then 
-			self.score = self.score + score
-			self.renderer:setScore(self.score);
+	if self.isEmptyCell then 
+		self.level:FillEmptyCell()
+	
+	else
+		self.isMoved = self.level:AllTest()
+		if self.isMoved then 
+			local score = self.level:AllCutChecked()
+			if score > 0 then 
+				self.score = self.score + score
+				self.renderer:setScore(self.score)
+			end
+		else
+			self.steps = self:countSteps()
+			self.renderer:setSteps(self.steps)
 		end
+		
 	end
 end
 
@@ -108,18 +148,23 @@ function MapModel:move(from, to)
 		newPos = Vector2:new(from.x, from.y + 1)
 	end
 	if newPos then 
-		self.map[from.y][from.x].letter, 
-		self.map[newPos.y][newPos.x].letter = 
-			self.map[newPos.y][newPos.x].letter, 
-			self.map[from.y][from.x].letter
+		self:cellXCHG(from.x, from.y, newPos.x, newPos.y)
 
-		ItemSystem:Get(self.map[from.y][from.x].letter)    :onMoved(newPos, from, self)
+		ItemSystem:Get(self.map[from.y]  [from.x]  .letter):onMoved(newPos, from, self)
 		ItemSystem:Get(self.map[newPos.y][newPos.x].letter):onMoved(from, newPos, self)
 	end
 end
 
 function MapModel:mix()
-
+	repeat
+		for y = 1, self.height do
+			for x = 1, self.width do
+				self:cellXCHG(x,y, math.random(self.width), math.random(self.height))
+			end
+		end
+		self.steps = self:countSteps()
+	until not self.level:AllTest() and self.steps > 0
+	self.renderer:setSteps(self.steps)
 end
 
 function MapModel:dump()
@@ -134,4 +179,4 @@ end
 ------------------------------------------------------------
 ------------------------------------------------------------
 
-return MapModel;
+return MapModel

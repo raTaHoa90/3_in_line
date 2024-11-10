@@ -1,6 +1,5 @@
-local Class = require "utils.classes"
-local BaseItemModel = require "models.Items.BaseItemModel"
-local Vector2       = require "models.Vector2"
+require "utils.constants"
+local Class         = require "utils.classes"
 local ItemSystem    = require "systems.ItemSystem"
 local CellModel = Class:Extend();
 

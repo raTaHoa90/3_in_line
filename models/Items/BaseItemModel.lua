@@ -1,10 +1,7 @@
+require "utils.constants"
 local Class = require "utils.classes"
 local AnimationSystem = require "systems.AnimationSystem"
 local BaseItemModel = Class:Extend()
-
-ANIMATION_STATUS_STOP  = 0
-ANIMATION_STATUS_START = 1
-ANIMATION_STATUS_RUN   = 2
 
 function BaseItemModel:construct(animNum, viewchar)
     self.animate = animNum

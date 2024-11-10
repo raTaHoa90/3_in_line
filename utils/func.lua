@@ -1,5 +1,5 @@
 function sleep (a) 
-    local sec = tonumber(os.clock() + a); 
+    local sec = tonumber(os.clock() + a)
     while (os.clock() < sec) do 
     end 
 end
@@ -15,7 +15,7 @@ function in_array (val, tab)
 end
 
 function isRange(num, max)
-    return num and num >= 0 and num <= max;
+    return num and num >= 0 and num <= max
 end
 
 function dump(o)

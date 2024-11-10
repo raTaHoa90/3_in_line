@@ -12,7 +12,7 @@ function AnimationSystem:Add(animTable, indexKeys)
 end
 
 function AnimationSystem:Get(num)
-    return self.allAnimates[num];
+    return self.allAnimates[num]
 end
 
 function AnimationSystem:FindByValue(value)
